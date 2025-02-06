@@ -1,6 +1,7 @@
 package vn.hoidanit.jobhunter.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.repository.UserRepository;
@@ -27,7 +28,7 @@ public class UserService {
         return userFetched.orElse(null);
     }
 
-    public User handleSaveUser(User user) {
+    public User handleCreateUser(User user) {
         return this.userRepository.save(user);
     }
     public User handleUpdateUser(User user) {

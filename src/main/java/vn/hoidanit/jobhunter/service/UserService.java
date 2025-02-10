@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.repository.UserRepository;
 
+import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,6 +32,7 @@ public class UserService {
     public User handleCreateUser(User user) {
         return this.userRepository.save(user);
     }
+
     public User handleUpdateUser(User user) {
         User currentUser = this.fetchUserById(user.getId());
         if(currentUser != null) {
@@ -44,5 +46,10 @@ public class UserService {
 
     public void handleDeleteUser(long userId) {
         this.userRepository.deleteById(userId);
+    }
+
+    public User handleGetUserByUsername(String username) {
+        Optional<User> userOptional = this.userRepository.findByEmail(username);
+        return userOptional.isPresent() ? userOptional.get() : null;
     }
 }

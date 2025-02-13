@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
+import vn.hoidanit.jobhunter.util.SecurityUtil;
 
 import java.time.Instant;
 
@@ -39,7 +40,14 @@ public class Company {
 
     @PrePersist
     public void handleBeforeCreate() {
-        this.setCreatedBy("hoidanit");
+        this.setCreatedBy(SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : "");
         this.setCreatedAt(Instant.now());
     }
+
+    @PreUpdate
+    public void handleBeforeUpdate() {
+        this.setUpdatedBy(SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : "");
+        this.setUpdatedAt(Instant.now());
+    }
+
 }

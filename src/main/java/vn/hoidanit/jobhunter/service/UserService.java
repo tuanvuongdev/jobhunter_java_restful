@@ -29,8 +29,8 @@ public class UserService {
         ResultPaginationDTO<List<User>> rs = new ResultPaginationDTO<>();
         Meta mt = new Meta();
 
-        mt.setPage(pageUser.getNumber() + 1);
-        mt.setPageSize(pageUser.getSize());
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
 
         mt.setPages(pageUser.getTotalPages());
         mt.setTotal(pageUser.getTotalElements());
@@ -46,8 +46,16 @@ public class UserService {
         return userFetched.orElse(null);
     }
 
-    public User handleCreateUser(User user) {
-        return this.userRepository.save(user);
+    public User handleCreateUser(User user) throws Exception {
+        boolean isEmailExisted = this.userRepository.existsByEmail(user.getEmail());
+
+        if(isEmailExisted) {
+            throw new Exception("Email "+ user.getEmail() + " đã tồn tại, vui lòng sử dụng email khác.");
+        }
+
+        User createdUser = this.userRepository.save(user);
+        createdUser.setPassword(null);
+        return createdUser;
     }
 
     public User handleUpdateUser(User user) {

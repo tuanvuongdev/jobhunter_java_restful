@@ -10,7 +10,7 @@ import java.time.Instant;
 
 @Getter
 @Setter
-public class UserDTO {
+public class ResUpdateUserDTO {
     private long id;
     private String name;
     private String email;
@@ -19,5 +19,5 @@ public class UserDTO {
     @Enumerated(EnumType.STRING)
     private GenderEnum gender;
     private String address;
-    private Instant createdAt;
+    private Instant updatedAt;
 }

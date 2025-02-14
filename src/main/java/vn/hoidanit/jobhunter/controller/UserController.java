@@ -1,37 +1,36 @@
 package vn.hoidanit.jobhunter.controller;
 
 import com.turkraft.springfilter.boot.Filter;
-import org.springframework.data.domain.PageRequest;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import vn.hoidanit.jobhunter.domain.User;
+import vn.hoidanit.jobhunter.domain.dto.ResCreateUserDTO;
+import vn.hoidanit.jobhunter.domain.dto.ResUpdateUserDTO;
+import vn.hoidanit.jobhunter.domain.dto.ResUserDTO;
 import vn.hoidanit.jobhunter.domain.dto.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.service.UserService;
 import vn.hoidanit.jobhunter.util.anotation.ApiMessage;
 import vn.hoidanit.jobhunter.util.error.IdInvalidException;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1")
 public class UserController {
 
     private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
 
-    public UserController(UserService userService, PasswordEncoder passwordEncoder) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping("/users")
     @ApiMessage("fetch all users")
-    public ResponseEntity<ResultPaginationDTO<List<User>>> getAllUsers(
+    public ResponseEntity<ResultPaginationDTO<List<ResUserDTO>>> getAllUsers(
             @Filter Specification<User> spec,
             Pageable pageable
     ) {
@@ -39,30 +38,33 @@ public class UserController {
     }
 
     @GetMapping("/users/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable("id") long id) {
-        return ResponseEntity.ok(this.userService.fetchUserById(id));
+    public ResponseEntity<ResUserDTO> getUserById(@PathVariable("id") long id) throws Exception {
+        User user = this.userService.fetchUserById(id);
+        return ResponseEntity.ok(this.userService.convertToResUserDTO(user));
     }
 
     @PostMapping("/users")
-    public ResponseEntity<User> createNewUser(@RequestBody User user) throws Exception {
-        String hashPassword = this.passwordEncoder.encode(user.getPassword());
-        user.setPassword(hashPassword);
-        User userCreate = this.userService.handleCreateUser(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(userCreate);
+    @ApiMessage("Create a new user")
+    public ResponseEntity<ResCreateUserDTO> createNewUser(@Valid @RequestBody User user) throws Exception {
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.handleCreateUser(user));
     }
 
     @PutMapping("/users")
-    public ResponseEntity<User> updateUser(@RequestBody User user) {
-        return ResponseEntity.ok(this.userService.handleUpdateUser(user));
+    public ResponseEntity<ResUpdateUserDTO> updateUser(@RequestBody User user) throws Exception {
+        User resUser = this.userService.handleUpdateUser(user);
+        return ResponseEntity.ok(this.userService.convertToResUpdateUserDTO(resUser));
     }
 
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<String> deleteUserById(@PathVariable("id") long id) throws IdInvalidException {
+    @ApiMessage("Delete a user")
+    public ResponseEntity<Void> deleteUserById(@PathVariable("id") long id) throws Exception {
+
         if (id >= 1500) {
             throw new IdInvalidException("id must be less than or equal to 1500");
         }
+        User currentUser = this.userService.fetchUserById(id);
         this.userService.handleDeleteUser(id);
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(null);
     }
 }

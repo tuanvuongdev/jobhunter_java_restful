@@ -1,61 +1,61 @@
 package vn.hoidanit.jobhunter.service;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import vn.hoidanit.jobhunter.domain.Company;
-import vn.hoidanit.jobhunter.domain.dto.ResultPaginationDTO;
-import vn.hoidanit.jobhunter.repository.CompaynyRepository;
 
-import java.util.List;
-import java.util.Optional;
+import vn.hoidanit.jobhunter.domain.Company;
+import vn.hoidanit.jobhunter.domain.dto.Meta;
+import vn.hoidanit.jobhunter.domain.dto.ResultPaginationDTO;
+import vn.hoidanit.jobhunter.repository.CompanyRepository;
 
 @Service
 public class CompanyService {
 
-    private final CompaynyRepository compaynyRepository;
+    private final CompanyRepository companyRepository;
 
-
-    public CompanyService(CompaynyRepository compaynyRepository) {
-        this.compaynyRepository = compaynyRepository;
+    public CompanyService(CompanyRepository companyRepository) {
+        this.companyRepository = companyRepository;
     }
 
-    public Company handleCreateCompany(Company company) {
-        return this.compaynyRepository.save(company);
+    public Company handleCreateCompany(Company c) {
+        return this.companyRepository.save(c);
     }
 
-    public ResultPaginationDTO<List<Company>> getAllCompanies(Specification<Company> spec, Pageable pageable) {
-        Page<Company> pageCompany = this.compaynyRepository.findAll(spec, pageable);
-        ResultPaginationDTO<List<Company>> rs = new ResultPaginationDTO<>();
-        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+    public ResultPaginationDTO handleGetCompany(Specification<Company> spec, Pageable pageable) {
+        Page<Company> pCompany = this.companyRepository.findAll(spec, pageable);
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+        Meta mt = new Meta();
 
         mt.setPage(pageable.getPageNumber() + 1);
         mt.setPageSize(pageable.getPageSize());
-        mt.setPageSize(pageCompany.getSize());
-        mt.setTotal(pageCompany.getTotalElements());
+
+        mt.setPages(pCompany.getTotalPages());
+        mt.setTotal(pCompany.getTotalElements());
 
         rs.setMeta(mt);
-        rs.setResult(pageCompany.getContent());
-
+        rs.setResult(pCompany.getContent());
         return rs;
     }
 
-    public Company handleUpdateCompany(Company company) throws Exception {
-        Optional<Company> companyOptional = this.compaynyRepository.findById(company.getId());
-
+    public Company handleUpdateCompany(Company c) {
+        Optional<Company> companyOptional = this.companyRepository.findById(c.getId());
         if (companyOptional.isPresent()) {
             Company currentCompany = companyOptional.get();
-            currentCompany.setName(company.getName());
-            currentCompany.setDescription(company.getDescription());
-            currentCompany.setAddress(company.getAddress());
-            currentCompany.setLogo(company.getLogo());
-            return this.compaynyRepository.save(currentCompany);
+            currentCompany.setLogo(c.getLogo());
+            currentCompany.setName(c.getName());
+            currentCompany.setDescription(c.getDescription());
+            currentCompany.setAddress(c.getAddress());
+            return this.companyRepository.save(currentCompany);
         }
-        throw new Exception("Company không tồn tại");
+        return null;
     }
 
     public void handleDeleteCompany(long id) {
-        this.compaynyRepository.deleteById(id);
+        this.companyRepository.deleteById(id);
     }
 }

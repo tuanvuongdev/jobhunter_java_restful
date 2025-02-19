@@ -1,50 +1,50 @@
 package vn.hoidanit.jobhunter.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 import vn.hoidanit.jobhunter.util.SecurityUtil;
+import vn.hoidanit.jobhunter.util.constant.LevelEnum;
 
 import java.time.Instant;
 import java.util.List;
 
-@Table(name = "companies")
 @Entity
+@Table(name = "jobs")
 @Getter
 @Setter
-public class Company {
+public class Job {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @NotBlank(message = "name không được để trống")
     private String name;
-
+    private String location;
+    private double salary;
+    private int quantity;
+//    @Enumerated(EnumType.STRING)
+    private LevelEnum level;
     @Column(columnDefinition = "MEDIUMTEXT")
     private String description;
+    private Instant startDate;
+    private Instant endDate;
+    private boolean active;
 
-    private String address;
-
-    private String logo;
-
-    // @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss a", timezone = "GMT+7")
     private Instant createdAt;
-
     private Instant updatedAt;
-
     private String createdBy;
-
     private String updatedBy;
 
-    @OneToMany(mappedBy = "company", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<User> users;
+    @ManyToOne
+    @JoinColumn(name = "company_id")
+    private Company company;
 
-    @OneToMany(mappedBy = "company", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Job> jobs;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JsonIgnoreProperties(value = {"jobs"})
+    @JoinTable(name = "job_skill", joinColumns = @JoinColumn(name = "job_id"), inverseJoinColumns = @JoinColumn(name = "skill_id"))
+    private List<Skill> skills;
 
     @PrePersist
     public void handleBeforeCreate() {
@@ -63,4 +63,5 @@ public class Company {
 
         this.updatedAt = Instant.now();
     }
+
 }

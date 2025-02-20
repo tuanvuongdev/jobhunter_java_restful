@@ -15,7 +15,7 @@ import vn.hoidanit.jobhunter.util.error.IdInvalidException;
 
 import java.util.List;
 
-@Controller
+@RestController
 @RequestMapping("/api/v1")
 public class SkillController {
     private final SkillService skillService;

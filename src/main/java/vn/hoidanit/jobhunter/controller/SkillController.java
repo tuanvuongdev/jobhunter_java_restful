@@ -44,4 +44,11 @@ public class SkillController {
     ) {
         return ResponseEntity.ok(this.skillService.fetchAllSkill(spec, pageable));
     }
+
+    @DeleteMapping("/skills/{id}")
+    @ApiMessage("Delete a skill")
+    public ResponseEntity<Void> deleteSkill(@PathVariable Long id) throws IdInvalidException {
+        this.skillService.handleDeleteById(id);
+        return ResponseEntity.ok(null);
+    }
 }

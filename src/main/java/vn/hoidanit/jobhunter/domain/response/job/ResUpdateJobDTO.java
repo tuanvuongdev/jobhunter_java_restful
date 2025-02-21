@@ -1,8 +1,5 @@
-package vn.hoidanit.jobhunter.domain.response;
+package vn.hoidanit.jobhunter.domain.response.job;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.Setter;
 import vn.hoidanit.jobhunter.util.constant.LevelEnum;
@@ -12,7 +9,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class ResCreateJobDTO {
+public class ResUpdateJobDTO {
     private long id;
     private String name;
     private String location;
@@ -25,6 +22,6 @@ public class ResCreateJobDTO {
     private boolean active;
     private List<String> skills;
 
-    private Instant createdAt;
-    private String createdBy;
+    private Instant updatedAt;
+    private String updatedBy;
 }

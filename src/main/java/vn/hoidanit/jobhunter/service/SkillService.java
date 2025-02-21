@@ -40,12 +40,13 @@ public class SkillService {
     }
 
     public Skill handleUpdateSkill(Skill skill) throws IdInvalidException {
+        Skill currentSkill = this.fetchSkillById(skill.getId());
+
         Optional<Skill> skillOptional = this.skillRepository.findByName(skill.getName());
         if (skillOptional.isPresent()) {
             throw new IdInvalidException("Skill with name = " + skillOptional.get().getName() + " is existed");
         }
 
-        Skill currentSkill = this.fetchSkillById(skill.getId());
         currentSkill.setName(skill.getName());
 
         return this.skillRepository.save(currentSkill);
@@ -65,5 +66,15 @@ public class SkillService {
         rs.setResult(pageSkill.getContent());
 
         return rs;
+    }
+
+    public void handleDeleteById(Long id) throws IdInvalidException {
+        Skill currentSkill = this.fetchSkillById(id);
+
+        //delete job (inside job_skill table)
+        currentSkill.getJobs().forEach(job -> job.getSkills().remove(currentSkill));
+
+        //delete skill
+        this.skillRepository.delete(currentSkill);
     }
 }

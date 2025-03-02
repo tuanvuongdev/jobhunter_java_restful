@@ -62,4 +62,10 @@ public class JobController {
     ) {
         return ResponseEntity.ok(this.jobService.fetchAllJob(spec, pageable));
     }
+
+    @GetMapping("/jobs/{id}")
+    @ApiMessage("Get all jobs")
+    public ResponseEntity<Job> getAllJobs(@PathVariable long id) throws IdInvalidException {
+        return ResponseEntity.ok(this.jobService.fetchJobById(id));
+    }
 }

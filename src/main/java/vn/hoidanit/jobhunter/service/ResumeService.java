@@ -1,16 +1,22 @@
 package vn.hoidanit.jobhunter.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import vn.hoidanit.jobhunter.domain.Job;
 import vn.hoidanit.jobhunter.domain.Resume;
 import vn.hoidanit.jobhunter.domain.User;
+import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.domain.response.resume.ResCreateResumeDTO;
+import vn.hoidanit.jobhunter.domain.response.resume.ResResumeDTO;
 import vn.hoidanit.jobhunter.domain.response.resume.ResUpdateResumeDTO;
 import vn.hoidanit.jobhunter.repository.JobRepository;
 import vn.hoidanit.jobhunter.repository.ResumeRepository;
 import vn.hoidanit.jobhunter.repository.UserRepository;
 import vn.hoidanit.jobhunter.util.error.IdInvalidException;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -29,19 +35,26 @@ public class ResumeService {
         this.jobRepository = jobRepository;
     }
 
-    public ResCreateResumeDTO handleCreateResume(Resume resume) throws IdInvalidException {
+    public boolean checkResumeExistByUserAndJob(Resume resume) {
+        if(resume.getUser() == null) {
+            return false;
+        }
         Optional<User> userOptional = this.userRepository.findById(resume.getUser().getId());
         if (userOptional.isEmpty()) {
-            throw new IdInvalidException("User not exist in system");
+            return false;
         }
-
+        if(resume.getJob() == null) {
+            return false;
+        }
         Optional<Job> jobOptional = this.jobRepository.findById(resume.getJob().getId());
-        if (jobOptional.isEmpty()) {
-            throw new IdInvalidException("Job not exist in system");
+        return jobOptional.isPresent();
+    }
+
+    public ResCreateResumeDTO handleCreateResume(Resume resume) throws IdInvalidException {
+        if (!this.checkResumeExistByUserAndJob(resume)) {
+            throw new IdInvalidException("User/Job not exist in system");
         }
 
-        resume.setUser(userOptional.get());
-        resume.setJob(jobOptional.get());
         Resume resumeSaved = this.resumeRepository.save(resume);
 
         ResCreateResumeDTO resCreateResumeDTO = new ResCreateResumeDTO();
@@ -70,12 +83,70 @@ public class ResumeService {
         return resCreateResumeDTO;
     }
 
-    public Void handleDeleteResume(long id) throws IdInvalidException {
+    public void handleDeleteResume(long id) throws IdInvalidException {
         Optional<Resume> resumeOptional = this.resumeRepository.findById(id);
         if (resumeOptional.isEmpty()) {
-            throw new IdInvalidException("Resume not exist in system");
+            throw new IdInvalidException("Resume with id= " + id + " not exist in system");
         }
         this.resumeRepository.deleteById(id);
-        return null;
+    }
+
+    public ResResumeDTO handleFetchResumeById(long id) throws IdInvalidException {
+        Optional<Resume> resumeOptional = this.resumeRepository.findById(id);
+        if (resumeOptional.isEmpty()) {
+            throw new IdInvalidException("Resume with id= " + id + " not exist in system");
+        }
+         Resume currentResume = resumeOptional.get();
+
+        return convertToResResumeDTO(currentResume);
+    }
+
+    public ResultPaginationDTO handleFetchResumePageable(Specification<Resume> spec, Pageable pageable) {
+        Page<Resume> pageResume = this.resumeRepository.findAll(spec, pageable);
+        ResultPaginationDTO res = new ResultPaginationDTO();
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+
+        mt.setTotal(pageResume.getTotalElements());
+        mt.setPages(pageResume.getTotalPages());
+
+        List<ResResumeDTO> resResume = pageResume.getContent()
+                .stream()
+                .map(ResumeService::convertToResResumeDTO).toList();
+        res.setMeta(mt);
+        res.setResult(resResume);
+
+        return res;
+    }
+
+    private static ResResumeDTO convertToResResumeDTO(Resume currentResume) {
+        ResResumeDTO res = new ResResumeDTO();
+        ResResumeDTO.UserResume userResume = new ResResumeDTO.UserResume();
+        ResResumeDTO.JobResume jobResume = new ResResumeDTO.JobResume();
+
+        userResume.setId(currentResume.getUser().getId());
+        userResume.setName(currentResume.getUser().getName());
+
+        jobResume.setId(currentResume.getJob().getId());
+        jobResume.setName(currentResume.getJob().getName());
+
+        res.setId(currentResume.getId());
+        res.setEmail(currentResume.getEmail());
+        res.setUrl(currentResume.getUrl());
+        res.setStatus(currentResume.getStatus());
+        res.setCreatedAt(currentResume.getCreatedAt());
+        res.setCreatedBy(currentResume.getCreatedBy());
+        res.setUpdatedAt(currentResume.getUpdatedAt());
+        res.setUpdatedBy(currentResume.getUpdatedBy());
+        res.setUser(userResume);
+        res.setJob(jobResume);
+
+        if(currentResume.getJob() != null) {
+            res.setCompanyName(currentResume.getJob().getCompany().getName());
+        }
+
+        return res;
     }
 }

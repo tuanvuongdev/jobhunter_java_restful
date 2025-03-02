@@ -1,6 +1,7 @@
 package vn.hoidanit.jobhunter.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 import vn.hoidanit.jobhunter.util.SecurityUtil;
@@ -17,7 +18,11 @@ public class Resume {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
+    @NotBlank(message = "email không được để trống")
     private String email;
+
+    @NotBlank(message = "url không được để trống (upload CV chưa thành công")
     private String url;
 
     @Enumerated(EnumType.STRING)

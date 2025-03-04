@@ -4,6 +4,7 @@ import com.turkraft.springfilter.boot.Filter;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.hoidanit.jobhunter.domain.Permission;
@@ -25,7 +26,7 @@ public class PermissionController {
     @PostMapping("/permissions")
     @ApiMessage("Create a new permission")
     public ResponseEntity<Permission> createPermission(@Valid @RequestBody Permission permission) throws IdInvalidException {
-        return ResponseEntity.ok(this.permissionService.handleSavePermission(permission));
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.permissionService.handleSavePermission(permission));
     }
 
 
@@ -42,5 +43,12 @@ public class PermissionController {
             Pageable pageable
     ) {
         return ResponseEntity.ok(this.permissionService.fetchPermissionPagination(spec, pageable));
+    }
+
+    @DeleteMapping("/permissions/{id}")
+    @ApiMessage("Delete a permission by id")
+    public ResponseEntity<Void> deletePermissionById(@PathVariable long id) throws IdInvalidException {
+        this.permissionService.handleDeleteById(id);
+        return ResponseEntity.ok(null);
     }
 }

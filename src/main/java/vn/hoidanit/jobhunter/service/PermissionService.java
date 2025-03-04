@@ -53,7 +53,7 @@ public class PermissionService {
         ResultPaginationDTO rs = new ResultPaginationDTO();
         ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
 
-        mt.setPage(pageable.getPageNumber());
+        mt.setPage(pageable.getPageNumber() + 1);
         mt.setPageSize(pageable.getPageSize());
 
         mt.setTotal(pagePermission.getTotalElements());
@@ -63,5 +63,18 @@ public class PermissionService {
         rs.setResult(pagePermission.getContent());
 
         return rs;
+    }
+
+    public void handleDeleteById(long id) throws IdInvalidException {
+        Optional<Permission> pOptional = this.permissionRepository.findById(id);
+        if (pOptional.isEmpty()) {
+            throw new IdInvalidException("Permission is not exists in system");
+        }
+
+        Permission currentPermission = pOptional.get();
+
+        currentPermission.getRoles().forEach(role -> role.getPermissions().remove(currentPermission));
+
+        this.permissionRepository.delete(currentPermission);
     }
 }

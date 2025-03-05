@@ -33,12 +33,13 @@ public class UserService {
     }
 
     public User handleCreateUser(User user) throws IdInvalidException {
-        Role currentRole = this.roleService.fetchById(user.getRole().getId());
-        if (currentRole == null) {
-            throw new IdInvalidException("Role with id = " + user.getRole().getId() + " does not exist");
+        if (user.getRole() != null) {
+            Role currentRole = this.roleService.fetchById(user.getRole().getId());
+            if (currentRole == null) {
+                throw new IdInvalidException("Role with id = " + user.getRole().getId() + " does not exist");
+            }
+            user.setRole(currentRole);
         }
-
-        user.setRole(currentRole);
 
         if (user.getCompany() != null) {
             Company currentCompany = this.companyService.handleGetCompanyById(user.getCompany().getId());
@@ -113,6 +114,10 @@ public class UserService {
 
     public boolean isEmailExist(String email) {
         return this.userRepository.existsByEmail(email);
+    }
+
+    public boolean isEmailExistUpdate(String email, long id) {
+        return this.userRepository.existsByEmailAndIdNot(email, id);
     }
 
     public ResCreateUserDTO convertToResCreateUserDTO(User user) {

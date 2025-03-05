@@ -37,15 +37,26 @@ public class PermissionService {
 
         boolean isDuplicated = this.permissionRepository.existsByApiPathAndMethodAndModule(permission.getApiPath(), permission.getMethod(), permission.getModule());
         if (isDuplicated) {
-            throw new IdInvalidException("Permission đã tồn tại");
+            if (this.isSameName(permission)) {
+                throw new IdInvalidException("Permission đã tồn tại");
+            }
         }
 
         Permission currentPermission = pOptional.get();
         currentPermission.setApiPath(permission.getApiPath());
         currentPermission.setMethod(permission.getMethod());
         currentPermission.setModule(permission.getModule());
+        currentPermission.setName(permission.getName());
 
         return this.permissionRepository.save(currentPermission);
+    }
+
+    public boolean isSameName(Permission p) {
+        Permission permission = this.permissionRepository.findById(p.getId()).isPresent() ? this.permissionRepository.findById(p.getId()).get() : null;
+        if (permission != null && permission.getName().equals(p.getName())) {
+            return true;
+        }
+        return false;
     }
 
     public ResultPaginationDTO fetchPermissionPagination(Specification<Permission> spec, Pageable pageable) {

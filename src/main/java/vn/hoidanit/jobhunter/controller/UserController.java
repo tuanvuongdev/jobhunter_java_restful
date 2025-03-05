@@ -97,7 +97,7 @@ public class UserController {
     @PutMapping("/users")
     @ApiMessage("Update a user")
     public ResponseEntity<ResUpdateUserDTO> updateUser(@RequestBody User user) throws IdInvalidException {
-        boolean isEmailExist = this.userService.isEmailExist(user.getEmail());
+        boolean isEmailExist = this.userService.isEmailExistUpdate(user.getEmail(), user.getId());
         if (isEmailExist) {
             throw new IdInvalidException(
                     "Email " + user.getEmail() + "đã tồn tại, vui lòng sử dụng email khác.");

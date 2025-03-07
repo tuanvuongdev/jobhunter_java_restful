@@ -1,5 +1,7 @@
 package vn.hoidanit.jobhunter.controller;
 
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,9 +22,10 @@ public class EmailController {
         this.subscriberService = subscriberService;
     }
 
-
     @GetMapping("/email")
     @ApiMessage("Send email successfull")
+//    @Scheduled(cron = "*/10 * * * * *")
+//    @Transactional
     public String sendSimpleEmail() {
 //        this.emailService.sendEmailSync(
 //                "vuongminh.wedding@gmail.com",

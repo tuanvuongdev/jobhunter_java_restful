@@ -1,5 +1,8 @@
 package vn.hoidanit.jobhunter.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import vn.hoidanit.jobhunter.domain.Job;
 import vn.hoidanit.jobhunter.domain.Skill;
@@ -17,6 +20,8 @@ import java.util.stream.Collectors;
 @Service
 public class SubscriberService {
 
+    private final Logger log = LoggerFactory.getLogger(SubscriberService.class);
+
     private final SubscriberRepository subscriberRepository;
 
     private final SkillRepository skillRepository;
@@ -31,31 +36,37 @@ public class SubscriberService {
         this.emailService = emailService;
     }
 
+//    @Scheduled(cron = "*/10 * * * * *")
+//    public void testCron() {
+//        System.out.println(">>>TEST CRON");
+//    }
 
     public Subscriber handleCreateSubscriber(Subscriber sub) throws IdInvalidException {
         Optional<Subscriber> sOptional = this.subscriberRepository.findByEmail(sub.getEmail());
-        if(sOptional.isPresent()) {
+        if (sOptional.isPresent()) {
             throw new IdInvalidException("Subscriber with email = " + sub.getEmail() + " already existed");
         }
 
-        if(sub.getSkills() != null) {
+        if (sub.getSkills() != null) {
             List<Long> listSkillIds = sub.getSkills().stream().map(Skill::getId).toList();
             List<Skill> listSkills = this.skillRepository.findAllById(listSkillIds);
 
             sub.setSkills(listSkills);
         }
 
+        log.debug("Request to create subcriber: {}", sub);
+
         return this.subscriberRepository.save(sub);
     }
 
     public Subscriber handleUpdateSubscriber(Subscriber sub) throws IdInvalidException {
         Optional<Subscriber> sOptional = this.subscriberRepository.findById(sub.getId());
-        if(sOptional.isEmpty()) {
+        if (sOptional.isEmpty()) {
             throw new IdInvalidException("Subscriber with id = " + sub.getId() + " is not exist");
         }
 
         Subscriber currentSubscriber = sOptional.get();
-        if(sub.getSkills() != null) {
+        if (sub.getSkills() != null) {
             List<Long> listSkillIds = sub.getSkills().stream().map(Skill::getId).toList();
             List<Skill> listSkills = this.skillRepository.findAllById(listSkillIds);
 
@@ -74,8 +85,8 @@ public class SubscriberService {
                     List<Job> listJobs = this.jobRepository.findBySkillsIn(listSkills);
                     if (listJobs != null && !listJobs.isEmpty()) {
 
-                         List<ResEmailJob> arr = listJobs.stream().map(
-                                 this::convertJobToSendEmail).toList();
+                        List<ResEmailJob> arr = listJobs.stream().map(
+                                this::convertJobToSendEmail).toList();
 
                         this.emailService.sendEmailFromTemplateSync(
                                 sub.getEmail(),
@@ -101,4 +112,8 @@ public class SubscriberService {
         return res;
     }
 
+    public Subscriber findByEmail(String email) {
+        Optional<Subscriber> sOptional = this.subscriberRepository.findByEmail(email);
+        return sOptional.orElse(null);
+    }
 }

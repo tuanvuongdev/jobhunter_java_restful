@@ -72,16 +72,17 @@ public class FileController {
         if(fileName == null || folder == null) {
             throw new StorageException("Missing requred params: (filename or folder)");
         }
-
 //        String fileNameEncode = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
         //check file xist (and not in a directory)
-        long fileLength = this.fileService.getFileLength(fileName, folder);
+        String fileNameReq = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
+
+        long fileLength = this.fileService.getFileLength(fileNameReq, folder);
         if(fileLength == 0) {
-            throw new StorageException("Invalid file: " + fileName + " not found.");
+            throw new StorageException("Invalid file: " + fileNameReq + " not found.");
         }
 
         //download a file
-        InputStreamResource resource = this.fileService.getResource(fileName, folder);
+        InputStreamResource resource = this.fileService.getResource(fileNameReq, folder);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
